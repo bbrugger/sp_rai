@@ -27,4 +27,28 @@ Para as estimativas são necessárias os seguintes dados:
 4. [GHS-POP (250m)](https://ghsl.jrc.ec.europa.eu/download.php?ds=pop)
 5. [GHS-SMOD (1km)](https://ghsl.jrc.ec.europa.eu/download.php?ds=smod)
 
-Nota: Para englobar o estado de SP, são necessários os tiles 12_11, 13_11 e 13_12 de cada base GHS. Os tiles podem ser agrupados em único arquivo através da operação `merge` da biblioteca GDAL pelo QGIS. O arquivo GHS-SMOD precisará também ser reamostrado para ser compatível com o GHS-POP, o que pode ser feito através do operados `r.resample` da biblioteca GRASS pelo QGIS. Recomenda-se também remover dos rasters as áreas fora do estado de São Paulo através do operador `Clip raster by extent` da biblioteca GDAL pelo QGIS. Os comandos a seguir assumem que os arquivos foram salvos como `ghs_pop_sp.tiff` e `ghs_smod_sp.tiff`, ambos em uma grade de 250m e englobando todo o estado de SP.
+Nota: Para englobar o estado de SP, são necessários os tiles 12_11, 13_11 e 13_12 de cada base GHS. Os tiles podem ser agrupados em único arquivo através da operação `merge` da biblioteca GDAL pelo QGIS. O arquivo GHS-SMOD precisará também ser reamostrado para ser compatível com o GHS-POP, o que pode ser feito através do operados `r.resample` da biblioteca GRASS pelo QGIS. Recomenda-se também remover dos rasters as áreas fora do estado de São Paulo através do operador `Clip raster by extent` da biblioteca GDAL pelo QGIS. Os comandos a seguir assumem que os arquivos foram salvos como `data/ghs_pop/ghs_pop_sp.tiff` e `data/ghs_smod/ghs_smod_sp.tiff`, ambos em uma grade de 250m e englobando todo o estado de SP.
+
+Em seguida, para adicionar os arquivos vetoriais ao banco pode-se utilizar o PostGIS Shapefile Importer, lembrando de associar os SRIDs a cada arquivo. Os comandos a seguir assumem que os arquivos foram importados com os seguintes nomes:
+
+1. `municipios` (EPSG:4674)
+2. `setores_censitarios` (EPSG:4674)
+3. `osm_roads` (EPSG:4326)
+
+Após importadas, as tabelas precisam ter seus SRID alterados, para que sejam compatíveis e em um sistema projetado (por exempo o EPSG 32723). Isso pode ser realizado através do seguinte comando:
+
+```
+ALTER TABLE <tabela>
+  ALTER COLUMN geom
+  TYPE geometry(MultiPolygon, 32723)
+  USING ST_Transform(geom, 32723);
+```
+
+Para a importação dos arquivos raster, pode-se utilizar a ferramenta `raster2pgsql` (os arquivos GHS são fornecidos com SRID 54009):
+
+```
+raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_pop\ghs_pop_sp.tif public.ghs_pop > ghs_pop.sql
+raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_smod\ghs_smod_sp.tif public.ghs_smod > ghs_smod.sql
+psql -U <usuário> -d sp_rai -f ghs_pop.sql
+psql -U <usuário> -d sp_rai -f ghs_smod.sql
+```
