@@ -1,8 +1,6 @@
 # Cálculo da estimativa do RAI em SP
 Dados e comandos para estimar o Índice de Acesso Rural (RAI) para os municípios do estado de São Paulo
 
-## Introdução
-
 ## Instalação
 
 1. Instale o [PostgreSQL](https://www.postgresql.org/) e crie um banco com as extensões [PostGIS](https://postgis.net/install/) habilitadas:
@@ -53,7 +51,7 @@ psql -U <usuário> -d sp_rai -f ghs_pop.sql
 psql -U <usuário> -d sp_rai -f ghs_smod.sql
 ```
 
-Para utilizar a grade SMOD na identificação de áreas rurais, é preciso criar um novo arquivo raster a partir do `ghs_pop_sp.tif`, onde o valor de população será colocado como zero nas células onde o SMOD contém uma classe urbana. Isso pode ser realizado no QGIS através da calculadora raster. Após carregar ambos os arquivos `ghs_pop_sp.tif` e `ghs_smod_sp.tif`, utilize a seguinte expressão na calculadora raster para criar um novo arquivo representando apenas a população rural: `"ghs_pop_sp@1"  *  ("ghs_smod_sp@1" < 20)`. Salve esse arquivo como `data/ghs_pop/ghs_pop_sp_rural.tiff` e carregue-os no Postgres:
+Para utilizar a grade SMOD na identificação de áreas rurais, é preciso criar um novo arquivo raster a partir do `ghs_pop_sp.tif`, onde o valor de população será colocado como zero nas células onde o SMOD contém uma classe urbana. Isso pode ser realizado no QGIS através da calculadora raster. Após carregar ambos os arquivos `ghs_pop_sp.tif` e `ghs_smod_sp.tif`, utilize a seguinte expressão na calculadora raster para criar um novo arquivo representando apenas a população rural: `"ghs_pop_sp@1"  *  ("ghs_smod_sp@1" < 20)`. Salve esse arquivo como `data/ghs_pop/ghs_pop_sp_rural.tiff` e carregue-o no Postgres:
 
 ```
 raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_pop\ghs_pop_sp_rural.tif public.ghs_pop_rural > ghs_pop_rural.sql
