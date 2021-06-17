@@ -1,4 +1,4 @@
-# Cálculo do RAI em SP
+# Cálculo da estimativa do RAI em SP
 Dados e comandos para estimar o Índice de Acesso Rural (RAI) para os municípios do estado de São Paulo
 
 ## Introdução
@@ -52,3 +52,20 @@ raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_smod\ghs_smod_sp.tif public
 psql -U <usuário> -d sp_rai -f ghs_pop.sql
 psql -U <usuário> -d sp_rai -f ghs_smod.sql
 ```
+
+## Execução
+
+Existe um arquivo `.sql` para cada um dos oito cenários para os quais o RAI pode ser estimado:
+
+1. Grade de população GHS-POP, Áreas rurais identificadas pelos setores censitários, definição restrita de estradas: `rai_ghs_cens_restrito.sql`
+2. Grade de população GHS-POP, Áreas rurais identificadas pelos setores censitários, definição abrangente de estradas: `rai_ghs_cens_abrang.sql`
+3. Grade de população GHS-POP, Áreas rurais identificadas pelo GHS-SMOD, definição restrita de estradas: `rai_ghs_smod_restrito.sql`
+4. Grade de população GHS-POP, Áreas rurais identificadas pelo GHS-SMOD, definição abrangente de estradas: `rai_ghs_cens_abrang.sql`
+5. Grade de população WorldPop, Áreas rurais identificadas pelos setores censitários, definição restrita de estradas: `rai_worldpop_cens_restrito.sql`
+6. Grade de população WorldPop, Áreas rurais identificadas pelos setores censitários, definição abrangente de estradas: `rai_worldpop_cens_abrang.sql`
+7. Grade de população WorldPop, Áreas rurais identificadas pelo GHS-SMOD, definição restrita de estradas: `rai_worldpop_smod_restrito.sql`
+8. Grade de população WorldPop, Áreas rurais identificadas pelo GHS-SMOD, definição abrangente de estradas: `rai_worldpop_cens_abrang.sql`
+
+A estimativa de cada caso pode ser feita pelo comando `psql -U <usuário> -d sp_rai -f <nome do arquivo>.sql`. Essa execução cria uma nova tabela no banco com o mesmo nome do arquivo, contendo uma linha para cada município com sua geometria e o RAI estimado. Algumas tabelas utilizadas nas etapas intermediárias da estimativa também são criadas.
+
+Para visualizar os resultados, essa tabela pode ser importada para o QGIS, e de lá exportada como um shapefile caso desejado.
