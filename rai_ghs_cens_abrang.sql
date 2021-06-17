@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS municipios_rural_cens AS
 		munic.cd_mun;
 
 
-CREATE TABLE IF NOT EXISTS access_area_ghs_cens_abrang AS
+CREATE TABLE IF NOT EXISTS access_area_cens_abrang AS
 	SELECT	
 		municipios_rural_cens.cd_mun,
 		ST_Intersection(
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS rai_ghs_cens_abrang AS
 		ghs_pop AS pop,
 		municipios AS mun,
 		municipios_rural_cens AS rur,
-		access_area_ghs_cens_abrang AS acc
+		access_area_cens_abrang AS acc
 	WHERE
 		mun.cd_mun = rur.cd_mun
 		AND mun.cd_mun = acc.cd_mun
