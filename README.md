@@ -24,8 +24,13 @@ Para as estimativas são necessárias os seguintes dados:
 3. [Dados do OpenStreetMap para a região sudeste](https://download.geofabrik.de/south-america/brazil/sudeste.html)
 4. [GHS-POP (250m)](https://ghsl.jrc.ec.europa.eu/download.php?ds=pop)
 5. [GHS-SMOD (1km)](https://ghsl.jrc.ec.europa.eu/download.php?ds=smod)
+6. [WorldPop (100m)](https://www.worldpop.org/geodata/summary?id=24967)
 
-Nota: Para englobar o estado de SP, são necessários os tiles 12_11, 13_11 e 13_12 de cada base GHS. Os tiles podem ser agrupados em único arquivo através da operação `merge` da biblioteca GDAL pelo QGIS. O arquivo GHS-SMOD precisará também ser reamostrado para ser compatível com o GHS-POP, o que pode ser feito através do operados `r.resample` da biblioteca GRASS pelo QGIS. Recomenda-se também remover dos rasters as áreas fora do estado de São Paulo através do operador `Clip raster by extent` da biblioteca GDAL pelo QGIS. Os comandos a seguir assumem que os arquivos foram salvos como `data/ghs_pop/ghs_pop_sp.tiff` e `data/ghs_smod/ghs_smod_sp.tiff`, ambos em uma grade de 250m e englobando todo o estado de SP.
+Notas: 
+- Para englobar o estado de SP, são necessários os tiles 12_11, 13_11 e 13_12 de cada base GHS. Os tiles podem ser agrupados em único arquivo através da operação `merge` da biblioteca GDAL pelo QGIS.
+- O arquivo GHS-SMOD precisará também ser reamostrado para ser compatível com o GHS-POP, o que pode ser feito através do operados `r.resample` da biblioteca GRASS pelo QGIS.
+- Recomenda-se também remover dos rasters as áreas fora do estado de São Paulo através do operador `Clip raster by extent` da biblioteca GDAL pelo QGIS. Os comandos a seguir assumem que os arquivos foram salvos como `data/ghs_pop/ghs_pop_sp.tiff` e `data/ghs_smod/ghs_smod_sp.tiff`, ambos em uma grade de 250m e englobando todo o estado de SP.
+- Também precisará ser gerado um arquivo GHS-SMOD `data/ghs_smod/ghs_smod_worldpop_sp.tiff` reamostrado para a grade de 100m do WorldPop. Recomenda-se também realizar o clip do WorldPop para carregar apenas a área que engloba o estado de São Paulo.
 
 Em seguida, para adicionar os arquivos vetoriais ao banco pode-se utilizar o PostGIS Shapefile Importer, lembrando de associar os SRIDs a cada arquivo. Os comandos a seguir assumem que os arquivos foram importados com os seguintes nomes:
 
