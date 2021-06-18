@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS access_area_smod_restrito AS
+CREATE TABLE IF NOT EXISTS access_area_smod_abrang AS
 	SELECT	
 		municipios.cd_mun,
 		ST_Intersection(
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS access_area_smod_restrito AS
 	GROUP BY municipios.cd_mun, municipios.geom;
 
 
-CREATE TABLE IF NOT EXISTS rai_ghs_smod_restrito AS
+CREATE TABLE IF NOT EXISTS rai_ghs_smod_abrang AS
 	SELECT 
 		mun.cd_mun,
 		mun.nm_mun,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS rai_ghs_smod_restrito AS
 	FROM
 		ghs_pop_rural AS pop,
 		municipios AS mun,
-		access_area_smod_restrito AS acc
+		access_area_smod_abrang AS acc
 	WHERE
 		mun.cd_mun = acc.cd_mun
 		AND ST_Intersects(pop.rast, ST_Transform(mun.geom, 54009))
