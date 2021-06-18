@@ -30,7 +30,7 @@ Notas:
 - Para englobar o estado de SP, são necessários os tiles 12_11, 13_11 e 13_12 de cada base GHS. Os tiles podem ser agrupados em único arquivo através da operação `merge` da biblioteca GDAL pelo QGIS.
 - O arquivo GHS-SMOD precisará também ser reamostrado para ser compatível com o GHS-POP, o que pode ser feito através do operados `r.resample` da biblioteca GRASS pelo QGIS.
 - Recomenda-se também remover dos rasters as áreas fora do estado de São Paulo através do operador `Clip raster by extent` da biblioteca GDAL pelo QGIS. Os comandos a seguir assumem que os arquivos foram salvos como `data/ghs_pop/ghs_pop_sp.tiff` e `data/ghs_smod/ghs_smod_sp.tiff`, ambos em uma grade de 250m e englobando todo o estado de SP.
-- Também precisará ser gerado um arquivo GHS-SMOD `data/ghs_smod/ghs_smod_worldpop_sp.tiff` reamostrado para a grade de 100m do WorldPop. Recomenda-se também realizar o clip do WorldPop para carregar apenas a área que engloba o estado de São Paulo.
+- Recomenda-se também realizar o clip do WorldPop para carregar apenas a área que engloba o estado de São Paulo.
 
 Em seguida, para adicionar os arquivos vetoriais ao banco pode-se utilizar o PostGIS Shapefile Importer, lembrando de associar os SRIDs a cada arquivo. Os comandos a seguir assumem que os arquivos foram importados com os seguintes nomes:
 
@@ -56,34 +56,28 @@ psql -U <usuário> -d sp_rai -f ghs_pop.sql
 psql -U <usuário> -d sp_rai -f worldpop.sql
 ```
 
-Para utilizar a grade SMOD na identificação de áreas rurais, é preciso criar dois novos arquivos raster a partir do `ghs_pop_sp.tif`, onde o valor de população será colocado como zero nas células onde o SMOD contém uma classe urbana, um na grade 250m do GHS-POP e outro na grade 100m do WorldPop. Isso pode ser realizado no QGIS através da calculadora raster. Após carregar todos os arquivos `ghs_smod_sp.tif`, `ghs_smod_worldpop_sp.tif` `ghs_pop_sp.tif` e `worldpop_sp.tif` utilize a seguinte expressão na calculadora raster para criar um novo arquivo representando apenas a população rural: `"<ghs_pop_sp ou worldpop_sp>@1"  *  ("<ghs_smod_sp ou ghs_smod_worldpop_sp>@1" < 20)`. Salve esses arquivos como `data/ghs_pop/ghs_pop_sp_rural.tiff` e `data/worldpop/worldpop_rural.tiff` e carregue-os no Postgres:
+Para utilizar a grade SMOD na identificação de áreas rurais, é preciso criar um novo arquivo raster a partir do `ghs_pop_sp.tif`, onde o valor de população será colocado como zero nas células onde o SMOD contém uma classe urbana, na grade 250m do GHS-POP. Isso pode ser realizado no QGIS através da calculadora raster. Após carregar ambos os arquivos `ghs_smod_sp.tif` e `ghs_pop_sp.tif` utilize a seguinte expressão na calculadora raster para criar um novo arquivo representando apenas a população rural: `"ghs_pop_sp@1"  *  ("ghs_smod_sp@1" < 20)`. Salve esse arquivo como `data/ghs_pop/ghs_pop_sp_rural.tiff` e carregue-o no Postgres:
 
 ```
 raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_pop\ghs_pop_sp_rural.tif public.ghs_pop_rural > ghs_pop_rural.sql
-raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\worldpop\worldpop_rural.tif public.worldpop_rural > worldpop_rural.sql
 psql -U <usuário> -d sp_rai -f ghs_pop_rural.sql
-psql -U <usuário> -d sp_rai -f worldpop_rural.sql
 ```
 
 ## Execução
 
-Existe um arquivo `.sql` para cada um dos oito cenários para os quais o RAI pode ser estimado:
+Existe um arquivo `.sql` para cada um dos seis cenários para os quais o RAI pode ser estimado:
 
 1. Grade de população GHS-POP, Áreas rurais identificadas pelos setores censitários, definição restrita de estradas:
     `rai_ghs_cens_restrito.sql`
-3. Grade de população GHS-POP, Áreas rurais identificadas pelos setores censitários, definição abrangente de estradas:
+2. Grade de população GHS-POP, Áreas rurais identificadas pelos setores censitários, definição abrangente de estradas:
     `rai_ghs_cens_abrang.sql`
-6. Grade de população GHS-POP, Áreas rurais identificadas pelo GHS-SMOD, definição restrita de estradas:
+3. Grade de população GHS-POP, Áreas rurais identificadas pelo GHS-SMOD, definição restrita de estradas:
     `rai_ghs_smod_restrito.sql`
-8. Grade de população GHS-POP, Áreas rurais identificadas pelo GHS-SMOD, definição abrangente de estradas:
+4. Grade de população GHS-POP, Áreas rurais identificadas pelo GHS-SMOD, definição abrangente de estradas:
     `rai_ghs_cens_abrang.sql`
-10. Grade de população WorldPop, Áreas rurais identificadas pelos setores censitários, definição restrita de estradas:
+5. Grade de população WorldPop, Áreas rurais identificadas pelos setores censitários, definição restrita de estradas:
     `rai_worldpop_cens_restrito.sql`
-12. Grade de população WorldPop, Áreas rurais identificadas pelos setores censitários, definição abrangente de estradas:
-    `rai_worldpop_cens_abrang.sql`
-14. Grade de população WorldPop, Áreas rurais identificadas pelo GHS-SMOD, definição restrita de estradas:
-    `rai_worldpop_smod_restrito.sql`
-16. Grade de população WorldPop, Áreas rurais identificadas pelo GHS-SMOD, definição abrangente de estradas:
+6. Grade de população WorldPop, Áreas rurais identificadas pelos setores censitários, definição abrangente de estradas:
     `rai_worldpop_cens_abrang.sql`
 
 A estimativa de cada caso pode ser feita pelo comando `psql -U <usuário> -d sp_rai -f <nome do arquivo>.sql`. Essa execução cria uma nova tabela no banco com o mesmo nome do arquivo, contendo uma linha para cada município com sua geometria e o RAI estimado. Algumas tabelas utilizadas nas etapas intermediárias da estimativa também são criadas.
