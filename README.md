@@ -51,16 +51,18 @@ Para a importação dos arquivos raster, pode-se utilizar a ferramenta `raster2p
 
 ```
 raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_pop\ghs_pop_sp.tif public.ghs_pop > ghs_pop.sql
-raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_smod\ghs_smod_sp.tif public.ghs_smod > ghs_smod.sql
+raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\worldpop\worldpop_sp.tif public.worldpop > worldpop.sql
 psql -U <usuário> -d sp_rai -f ghs_pop.sql
-psql -U <usuário> -d sp_rai -f ghs_smod.sql
+psql -U <usuário> -d sp_rai -f worldpop.sql
 ```
 
-Para utilizar a grade SMOD na identificação de áreas rurais, é preciso criar um novo arquivo raster a partir do `ghs_pop_sp.tif`, onde o valor de população será colocado como zero nas células onde o SMOD contém uma classe urbana. Isso pode ser realizado no QGIS através da calculadora raster. Após carregar ambos os arquivos `ghs_pop_sp.tif` e `ghs_smod_sp.tif`, utilize a seguinte expressão na calculadora raster para criar um novo arquivo representando apenas a população rural: `"ghs_pop_sp@1"  *  ("ghs_smod_sp@1" < 20)`. Salve esse arquivo como `data/ghs_pop/ghs_pop_sp_rural.tiff` e carregue-o no Postgres:
+Para utilizar a grade SMOD na identificação de áreas rurais, é preciso criar dois novos arquivos raster a partir do `ghs_pop_sp.tif`, onde o valor de população será colocado como zero nas células onde o SMOD contém uma classe urbana, um na grade 250m do GHS-POP e outro na grade 100m do WorldPop. Isso pode ser realizado no QGIS através da calculadora raster. Após carregar todos os arquivos `ghs_smod_sp.tif`, `ghs_smod_worldpop_sp.tif` `ghs_pop_sp.tif` e `worldpop_sp.tif` utilize a seguinte expressão na calculadora raster para criar um novo arquivo representando apenas a população rural: `"<ghs_pop_sp ou worldpop_sp>@1"  *  ("<ghs_smod_sp ou ghs_smod_worldpop_sp>@1" < 20)`. Salve esses arquivos como `data/ghs_pop/ghs_pop_sp_rural.tiff` e `data/worldpop/worldpop_rural.tiff` e carregue-os no Postgres:
 
 ```
 raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\ghs_pop\ghs_pop_sp_rural.tif public.ghs_pop_rural > ghs_pop_rural.sql
+raster2pgsql -s 54009 -I -C -r -t 250x250 .\data\worldpop\worldpop_rural.tif public.worldpop_rural > worldpop_rural.sql
 psql -U <usuário> -d sp_rai -f ghs_pop_rural.sql
+psql -U <usuário> -d sp_rai -f worldpop_rural.sql
 ```
 
 ## Execução
